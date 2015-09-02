@@ -2,11 +2,13 @@ package net.spencerhaney.opengl;
 
 import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
@@ -25,6 +27,7 @@ public class GLUtil
     public static int program;
     public static int textureProgram;
     
+    private static Matrix4f projectionMatrix;
     private static ArrayList<Integer> loadedTextures = new ArrayList<Integer>();
     
     private GLUtil()
@@ -36,6 +39,13 @@ public class GLUtil
     {
         Logging.fine("OpenGL version: " + GL11.glGetString(GL11.GL_VERSION));
 
+        //Setup projection matrix
+        float fieldOfView = 60f;
+        float aspectRatio = (float)1920/(float)1080; //TODO remove hardcoding
+        float near_plane = 0.1f;
+        float far_plane = 100f;
+        projectionMatrix = Matrix4f.perspective(fieldOfView, aspectRatio, near_plane, far_plane).multiply(Matrix4f.translate(0, 0, -1.5f));
+        
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDepthFunc(GL11.GL_LESS);
         
@@ -50,6 +60,13 @@ public class GLUtil
         
         program = createProgram(vertexShader, fragmentShader);
         textureProgram = createProgram(vertexShader, textureFragmentShader);
+        
+        int projectionMatrixLocation = GL20.glGetUniformLocation(program, "projectionMatrix");
+        
+        GL20.glUseProgram(program);
+        FloatBuffer buffer = projectionMatrix.getBuffer();
+        GL20.glUniformMatrix4fv(projectionMatrixLocation, false, buffer);
+        GL20.glUseProgram(0);
     }
 
     public static void cleanup()

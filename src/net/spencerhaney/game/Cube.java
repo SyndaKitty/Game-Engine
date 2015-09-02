@@ -3,6 +3,7 @@ package net.spencerhaney.game;
 import java.nio.file.Paths;
 
 import net.spencerhaney.engine.GameObject;
+import net.spencerhaney.opengl.GLUtil;
 import net.spencerhaney.opengl.Model;
 import net.spencerhaney.opengl.OBJLoader;
 
@@ -13,13 +14,14 @@ public class Cube extends GameObject
     @Override
     public void init()
     {
-        model = OBJLoader.load(Paths.get("res\\models\\cube.obj"));
+        model = OBJLoader.load(Paths.get("res\\models\\sdsuzanne.obj"));
+//        GLUtil.setWireframeMode(true);
     }
 
     @Override
     public void update()
     {
-
+        
     }
 
     @Override

@@ -66,6 +66,33 @@ public class ScreenManager
         GLUtil.init();
     }
 
+    public void createWindow(final String title, final int width, final int height)
+    {
+        this.width = width;
+        this.height = height;
+        // Configure our window
+        glfwDefaultWindowHints(); // Defaults
+        glfwWindowHint(GLFW_VISIBLE, GL_FALSE); // Stay hidden after creation
+        
+        // Create the window
+        window = glfwCreateWindow(width, height, title, NULL, NULL);
+        if (window == NULL)
+        {
+            throw new RuntimeException("Failed to create the GLFW Window");
+        }
+
+        // Make the OpenGL context current
+        glfwMakeContextCurrent(window);
+
+        // Enable v-sync
+        glfwSwapInterval(1);
+
+        GLContext.createFromCurrent();
+        GL11.glViewport(0, 0, width, height);
+        glClearColor(0.2f, 0.2f, 0.4f, 1.0f);
+        GLUtil.init();
+    }
+    
     public void setKeyCallback(GLFWKeyCallback callback)
     {
         glfwSetKeyCallback(window, callback);

@@ -55,7 +55,7 @@ public class EngineManager
         }
 
         screen = new ScreenManager();
-        screen.createFullWindow(game.getTitle());
+        screen.createWindow(game.getTitle(), 1920, 1080);
         screen.show();
         game.init();
     }
