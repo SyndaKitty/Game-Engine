@@ -15,10 +15,12 @@ import net.spencerhaney.opengl.GLUtil;
 
 public class EngineManager
 {
+    private static final float TARGET_UPS = 1f / 60;
     private static GLFWErrorCallback errorCallback;
     private static ScreenManager screen;
     private static Game game;
-
+    private static float accumulator;
+    
     public static void run(Game game)
     {
         EngineManager.game = game;
@@ -37,7 +39,7 @@ public class EngineManager
     {
         Logging.init();
         Logging.info("Initiating engine.");
-        
+
         Resources.init();
         Time.init();
 
@@ -87,7 +89,7 @@ public class EngineManager
         cleanup();
         System.exit(errorCode);
     }
-    
+
     public static void main(String[] args)
     {
         System.setProperty("org.lwjgl.librarypath", new File("lib/native").getAbsolutePath());

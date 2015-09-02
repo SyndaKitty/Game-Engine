@@ -21,4 +21,9 @@ public class ErrorCodes
      * The Error code that occurs when updating a face with more or less vertices than it had
      */
     public static final int FACE_VERTICES_SIZE_MISTMATCH = 4;
+    
+    /**
+     * The Error code that occurs constructing a face with a mismatching number of vertices and normal
+     */
+    public static final int VERTEX_NORMAL_MISTMATCH = 5;
 }

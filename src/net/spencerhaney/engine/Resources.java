@@ -14,6 +14,8 @@ import java.util.Map;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
 import de.matthiasmann.twl.utils.PNGDecoder.Format;
+import net.spencerhaney.opengl.Model;
+import net.spencerhaney.opengl.OBJLoader;
 
 public class Resources
 {
@@ -64,9 +66,13 @@ public class Resources
     private static void loadFile(String s) throws IOException
     {
         Logging.fine("Attempting to load " + s);
-        if (s.toLowerCase().endsWith("png"))
+        if (s.toLowerCase().endsWith(".png"))
         {
             resources.put(s, loadPNG(s));
+        }
+        else if(s.toLowerCase().endsWith(".obj"))
+        {
+            Logging.fine("Skipping " + s);
         }
         else
         {
@@ -96,5 +102,12 @@ public class Resources
     public static Object[] getResource(final String filePath)
     {
         return resources.get(filePath);
+    }
+    
+    private static Object[] loadOBJ(final String filePath) throws IOException
+    {
+        Model model = OBJLoader.load(Paths.get(filePath));
+        Logging.fine("Loading \"" + filePath + "\" - " + model.verticesCount() + " vertices, " + model.faceCount() + " faces");
+        return new Object[]{model};
     }
 }

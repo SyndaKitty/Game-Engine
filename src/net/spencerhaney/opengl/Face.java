@@ -17,7 +17,7 @@ import net.spencerhaney.engine.Logging;
 public class Face
 {
     private static final int MAX_SIDES = Byte.MAX_VALUE - Byte.MIN_VALUE;
-    
+
     private int vao;
     private int vbo;
 
@@ -26,28 +26,53 @@ public class Face
     private int ivbo;
     private ByteBuffer indicesBuffer;
     private int indicesLength;
-    
-    private Vector3f normal;
+
+    private Vector3f[] normals;
     private Vertex[] vertices;
     private Integer texture;
-    
-    public void init(Vector3f normal, int texture, Vertex ... vertices)
+
+    public void init(Vector3f[] normal, int texture, Vertex[] vertices)
     {
         this.texture = texture;
         init(normal, vertices);
     }
-    
+
+    public void init(Vector3f normal, Vertex[] vertices)
+    {
+        Vector3f[] normals = new Vector3f[vertices.length];
+        for (int i = 0; i < vertices.length; i++)
+        {
+            normals[i] = normal;
+        }
+        init(normals, vertices);
+    }
+
+    public void init(Vector3f normal, int texture, Vertex[] vertices)
+    {
+        Vector3f[] normals = new Vector3f[vertices.length];
+        for (int i = 0; i < vertices.length; i++)
+        {
+            normals[i] = normal;
+        }
+        init(normals, texture, vertices);
+    }
+
     /**
      * Create the necessary OpenGL components to render this Geometry
      * 
      * @param vertices
      *            The vertices in counter-clockwise order
      */
-    public void init(Vector3f normal, Vertex... vertices)
+    public void init(Vector3f[] normals, Vertex[] vertices)
     {
-        this.normal = normal;
-        this.vertices = vertices.clone();
-        
+        if (normals.length != vertices.length)
+        {
+            Logging.severe(new IllegalArgumentException("Normals and vertices size do not match"));
+            EngineManager.errorStop(ErrorCodes.VERTEX_NORMAL_MISTMATCH);
+        }
+        this.normals = normals;
+        this.vertices = vertices;
+
         // Setup vertices
         setVertices(vertices);
 
@@ -98,11 +123,11 @@ public class Face
     {
         combinedBuffer = BufferUtils.createFloatBuffer(vertices.length * Vertex.STRIDE);
 
-        for (Vertex v : vertices)
+        for (int i = 0; i < vertices.length; i++)
         {
-            combinedBuffer.put(v.getElements(normal));
+            combinedBuffer.put(vertices[i].getElements(normals[i]));
         }
-        
+
         combinedBuffer.flip();
     }
 
@@ -114,28 +139,34 @@ public class Face
         {
             FloatBuffer vertexFloatBuffer = vertexByteBuffer.asFloatBuffer();
             vertexFloatBuffer.rewind();
-            vertexFloatBuffer.put(vertices[i].getElements(normal));
+            vertexFloatBuffer.put(vertices[i].getElements(normals[i]));
             vertexFloatBuffer.flip();
             GL15.glBufferSubData(GL15.GL_ARRAY_BUFFER, i * Vertex.STRIDE, vertexByteBuffer);
         }
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
     }
 
-    public void update(Vector3f normal, Vertex... vertices)
-    {   
-        if(this.vertices.length != vertices.length)
+    public void update(Vector3f[] normals, Vertex... vertices)
+    {
+        if (this.vertices.length != vertices.length)
         {
-            Logging.severe(new IllegalArgumentException("The number of vertices originally in this object does not match the amount given when updated"));
+            Logging.severe(new IllegalArgumentException(
+                    "The number of vertices originally in this object does not match the amount given when updated"));
             EngineManager.errorStop(ErrorCodes.FACE_VERTICES_SIZE_MISTMATCH);
         }
-        this.normal = normal;
+        if (vertices.length != normals.length)
+        {
+            Logging.severe(new IllegalArgumentException("Normals and vertices size do not match"));
+            EngineManager.errorStop(ErrorCodes.VERTEX_NORMAL_MISTMATCH);
+        }
+        this.normals = normals;
         this.vertices = vertices;
         update();
     }
 
     public void render()
     {
-        if(texture == null)
+        if (texture == null)
         {
             GL20.glUseProgram(GLUtil.program);
         }
@@ -180,12 +211,13 @@ public class Face
      */
     public static byte[] indexSequence(int vertices)
     {
-        if(vertices > MAX_SIDES)
+        if (vertices > MAX_SIDES)
         {
-            Logging.severe(new IllegalArgumentException("Size of vertices too large: " + vertices + ". Must not exceed " + MAX_SIDES));
+            Logging.severe(new IllegalArgumentException(
+                    "Size of vertices too large: " + vertices + ". Must not exceed " + MAX_SIDES));
             EngineManager.errorStop(ErrorCodes.POLYGON_SIDES_TOO_LARGE);
         }
-        
+
         byte[] sequence = new byte[vertices * 3];
 
         for (int i = 0; i < vertices; i++)
@@ -196,5 +228,10 @@ public class Face
         }
 
         return sequence;
+    }
+    
+    public int verticesCount()
+    {
+        return vertices.length;
     }
 }

@@ -37,6 +37,7 @@ public class GLUtil
         Logging.fine("OpenGL version: " + GL11.glGetString(GL11.GL_VERSION));
 
         GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glDepthFunc(GL11.GL_LESS);
         
         String vShader = loadFile(Paths.get("GLSL/vertexShader.glsl"));
         vertexShader = createShader(GL20.GL_VERTEX_SHADER, vShader);
