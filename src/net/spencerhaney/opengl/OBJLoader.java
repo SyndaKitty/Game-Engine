@@ -3,7 +3,6 @@ package net.spencerhaney.opengl;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 
 import net.spencerhaney.engine.Logging;

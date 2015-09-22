@@ -19,7 +19,6 @@ public class EngineManager
     private static GLFWErrorCallback errorCallback;
     private static ScreenManager screen;
     private static Game game;
-    private static float accumulator;
     
     public static void run(Game game)
     {

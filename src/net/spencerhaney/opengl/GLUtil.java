@@ -27,6 +27,8 @@ public class GLUtil
     public static int program;
     public static int textureProgram;
     
+    private static boolean legacy;
+    
     private static Matrix4f projectionMatrix;
     private static ArrayList<Integer> loadedTextures = new ArrayList<Integer>();
     
@@ -235,5 +237,15 @@ public class GLUtil
             buffer.append(in.nextLine() + "\n");
         }
         return buffer.toString();
+    }
+    
+    public static void setLegacy(boolean b)
+    {
+        legacy = b;
+    }
+    
+    public static boolean isLegacy()
+    {
+        return legacy;
     }
 }

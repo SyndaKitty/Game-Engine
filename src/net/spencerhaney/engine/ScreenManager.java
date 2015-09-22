@@ -1,27 +1,10 @@
 package net.spencerhaney.engine;
 
-import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
-import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
-import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
-import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
-import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
-import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
-import static org.lwjgl.glfw.GLFW.glfwPollEvents;
-import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
-import static org.lwjgl.glfw.GLFW.glfwShowWindow;
-import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
-import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
-import static org.lwjgl.glfw.GLFW.glfwWindowHint;
-import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
-import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_FALSE;
-import static org.lwjgl.opengl.GL11.glClear;
-import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.system.MemoryUtil.NULL;
-
 import java.nio.ByteBuffer;
 
+import static org.lwjgl.system.MemoryUtil.NULL;
+
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWvidmode;
 import org.lwjgl.opengl.GL11;
@@ -38,31 +21,32 @@ public class ScreenManager
     public void createFullWindow(final String title)
     {
         // Configure our window
-        glfwDefaultWindowHints(); // Defaults
-        glfwWindowHint(GLFW_VISIBLE, GL_FALSE); // Stay hidden after creation
+        GLFW.glfwDefaultWindowHints(); // Defaults
+        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GL11.GL_FALSE); // Stay hidden after creation
 
         // Get the resolution of the primary monitor
-        final ByteBuffer vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        final ByteBuffer vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
 
         width = GLFWvidmode.width(vidmode);
         height = GLFWvidmode.height(vidmode);
 
         // Create the window
-        window = glfwCreateWindow(width, height, title, glfwGetPrimaryMonitor(), NULL);
+        window = GLFW.glfwCreateWindow(width, height, title, GLFW.glfwGetPrimaryMonitor(),
+                NULL);
         if (window == NULL)
         {
             throw new RuntimeException("Failed to create the GLFW Window");
         }
 
         // Make the OpenGL context current
-        glfwMakeContextCurrent(window);
+        GLFW.glfwMakeContextCurrent(window);
 
         // Enable v-sync
-        glfwSwapInterval(1);
+        GLFW.glfwSwapInterval(1);
 
         GLContext.createFromCurrent();
         GL11.glViewport(0, 0, width, height);
-        glClearColor(0.2f, 0.2f, 0.4f, 1.0f);
+        GL11.glClearColor(0.2f, 0.2f, 0.4f, 1.0f);
         GLUtil.init();
     }
 
@@ -71,53 +55,76 @@ public class ScreenManager
         this.width = width;
         this.height = height;
         // Configure our window
-        glfwDefaultWindowHints(); // Defaults
-        glfwWindowHint(GLFW_VISIBLE, GL_FALSE); // Stay hidden after creation
+        GLFW.glfwDefaultWindowHints(); // Defaults
+        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GL11.GL_FALSE); // Stay hidden after creation
+        
+        //We want a forward compatible 3.2 OpenGL context
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2);
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GL11.GL_TRUE);
         
         // Create the window
-        window = glfwCreateWindow(width, height, title, NULL, NULL);
+        window = GLFW.glfwCreateWindow(width, height, title, NULL, NULL);
         if (window == NULL)
         {
-            throw new RuntimeException("Failed to create the GLFW Window");
+            Logging.info("OpenGL 3.2 unavailable");
+            GLFW.glfwDefaultWindowHints(); // Defaults
+            GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GL11.GL_FALSE); // Stay hidden after creation
+            
+            //Attempt to use OpenGL 2.1
+            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 2);
+            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 1);
+            
+            //Create the window
+            GLFW.glfwCreateWindow(width, height, title, NULL, NULL);
+            
+            if(window == NULL)
+            {
+                Logging.severe("Could not use OpenGL 3.2 or 2.1; Update you graphics card");
+                EngineManager.errorStop(ErrorCodes.GLFW_CREATE_WINDOW_FAIL);
+            }
+            
+            GLUtil.setLegacy(true);
         }
 
         // Make the OpenGL context current
-        glfwMakeContextCurrent(window);
+        GLFW.glfwMakeContextCurrent(window);
 
         // Enable v-sync
-        glfwSwapInterval(1);
+        GLFW.glfwSwapInterval(1);
 
         GLContext.createFromCurrent();
         GL11.glViewport(0, 0, width, height);
-        glClearColor(0.2f, 0.2f, 0.4f, 1.0f);
+        GL11.glClearColor(0.2f, 0.2f, 0.4f, 1.0f);
         GLUtil.init();
     }
-    
+
     public void setKeyCallback(GLFWKeyCallback callback)
     {
-        glfwSetKeyCallback(window, callback);
+        GLFW.glfwSetKeyCallback(window, callback);
     }
 
     public boolean isOpen()
     {
-        return glfwWindowShouldClose(window) == GL_FALSE;
+        return GLFW.glfwWindowShouldClose(window) == GL11.GL_FALSE;
     }
 
     public void update()
-    {   
+    {
         // Swap the color buffers
-        glfwSwapBuffers(window);
+        GLFW.glfwSwapBuffers(window);
 
         // Clear the framebuffer
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 
         // Poll window for events (eg: key callback)
-        glfwPollEvents();
+        GLFW.glfwPollEvents();
     }
 
     public void show()
     {
-        glfwShowWindow(window);
+        GLFW.glfwShowWindow(window);
     }
 
     public long getWindow()

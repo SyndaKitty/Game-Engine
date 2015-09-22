@@ -14,8 +14,7 @@ public class Cube extends GameObject
     @Override
     public void init()
     {
-        model = OBJLoader.load(Paths.get("res\\models\\sdsuzanne.obj"));
-//        GLUtil.setWireframeMode(true);
+        model = OBJLoader.load(Paths.get("res\\models\\suzanne.obj"));
     }
 
     @Override

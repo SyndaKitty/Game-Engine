@@ -23,7 +23,12 @@ public class ErrorCodes
     public static final int FACE_VERTICES_SIZE_MISTMATCH = 4;
     
     /**
-     * The Error code that occurs constructing a face with a mismatching number of vertices and normal
+     * The Error code that occurs when constructing a face with a mismatching number of vertices and normal
      */
     public static final int VERTEX_NORMAL_MISTMATCH = 5;
+    
+    /**
+     * The Error code the occurs when the GLFW window could not be created with OpenGL 3.2 nor OpenGL 2.1
+     */
+    public static final int GLFW_CREATE_WINDOW_FAIL = 6;
 }
