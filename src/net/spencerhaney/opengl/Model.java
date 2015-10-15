@@ -4,20 +4,17 @@ public class Model
 {
     private Face[] faces;
     private String name;
-    private Matrix4f modelMatrix = new Matrix4f();
     
     public void init(String name, Face[] faces)
     {
     	this.name = name;
         this.faces = faces;
-        modelMatrix = new Matrix4f();
     }
     
     public void render()
     {
     	for(Face face : faces)
     	{
-    		//TODO load model matrix
     		face.render();
     	}
     }

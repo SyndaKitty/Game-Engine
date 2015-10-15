@@ -52,7 +52,7 @@ public class EngineManager
         }
 
         screen = new ScreenManager();
-        screen.createWindow(game.getTitle(), 1920, 1080);
+        screen.createWindow(game.getTitle(), 1920 / 2, 1080 / 2);
         screen.show();
         game.init();
     }

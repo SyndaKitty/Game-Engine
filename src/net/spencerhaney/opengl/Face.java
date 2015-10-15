@@ -176,28 +176,27 @@ public class Face
             GL13.glActiveTexture(GL13.GL_TEXTURE0);
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
         }
+
+        // Bind the texture
+        GL30.glBindVertexArray(vao);
         {
-            // Bind the texture
-            GL30.glBindVertexArray(vao);
+            GL20.glEnableVertexAttribArray(0);
+            GL20.glEnableVertexAttribArray(1);
+            GL20.glEnableVertexAttribArray(2);
+            GL20.glEnableVertexAttribArray(3);
+
+            GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, ivbo);
             {
-                GL20.glEnableVertexAttribArray(0);
-                GL20.glEnableVertexAttribArray(1);
-                GL20.glEnableVertexAttribArray(2);
-                GL20.glEnableVertexAttribArray(3);
+                // Draw
+                GL11.glDrawElements(GL11.GL_TRIANGLES, indicesLength, GL11.GL_UNSIGNED_BYTE, 0);
 
-                GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, ivbo);
-                {
-                    // Draw
-                    GL11.glDrawElements(GL11.GL_TRIANGLES, indicesLength, GL11.GL_UNSIGNED_BYTE, 0);
-
-                }
-                GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
-
-                GL20.glDisableVertexAttribArray(0);
-                GL20.glDisableVertexAttribArray(1);
             }
-            GL30.glBindVertexArray(0);
+            GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
+
+            GL20.glDisableVertexAttribArray(0);
+            GL20.glDisableVertexAttribArray(1);
         }
+        GL30.glBindVertexArray(0);
         GL20.glUseProgram(0);
     }
 
@@ -229,7 +228,7 @@ public class Face
 
         return sequence;
     }
-    
+
     public int verticesCount()
     {
         return vertices.length;
