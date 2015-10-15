@@ -15,7 +15,6 @@ import net.spencerhaney.opengl.GLUtil;
 
 public class EngineManager
 {
-    private static final float TARGET_UPS = 1f / 60;
     private static GLFWErrorCallback errorCallback;
     private static ScreenManager screen;
     private static Game game;
@@ -39,7 +38,6 @@ public class EngineManager
         Logging.init();
         Logging.info("Initiating engine.");
 
-        Resources.init();
         Time.init();
 
         // Setup error callback. Print to System.err

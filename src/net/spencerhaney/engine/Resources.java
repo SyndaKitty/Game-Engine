@@ -1,84 +1,16 @@
 package net.spencerhaney.engine;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
 import de.matthiasmann.twl.utils.PNGDecoder.Format;
-import net.spencerhaney.opengl.Model;
-import net.spencerhaney.opengl.OBJLoader;
 
 public class Resources
 {
     public static final String RESOURCE_FOLDER = "res";
-
-    //TODO map resources to a File key
-    private static Map<String, Object[]> resources;
-
-    /**
-     * Loads all of the resources in the res folder that can be recognized.
-     */
-    public static void init()
-    {
-        resources = new HashMap<String, Object[]>();
-        Path resourceFolder = Paths.get(RESOURCE_FOLDER);
-        try
-        {
-            loadDirectory(resourceFolder);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-        
-        Logging.info("Resources loaded successfully");
-    }
-
-    private static void loadDirectory(Path directory) throws IOException
-    {
-        DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory);
-        for (Path path : directoryStream)
-        {
-            File file = path.toFile();
-            if (file.exists())
-            {
-                if (file.isDirectory())
-                {
-                    loadDirectory(path);
-                }
-                else if (file.isFile())
-                {
-                    loadFile(path.toString());
-                }
-            }
-        }
-    }
-
-    private static void loadFile(String s) throws IOException
-    {
-        Logging.fine("Attempting to load " + s);
-        if (s.toLowerCase().endsWith(".png"))
-        {
-            resources.put(s, loadPNG(s));
-        }
-        else if(s.toLowerCase().endsWith(".obj"))
-        {
-            Logging.fine("Skipping " + s);
-        }
-        else
-        {
-            Logging.fine("Could not read \"" + s + "\"");
-        }
-    }
 
     /**
      * Load and decode a PNG file. Store in an Object array in the order, {ByteBuffer, width, height}
@@ -97,17 +29,5 @@ public class Resources
         decoder.decode(buffer, decoder.getWidth() * 4, Format.RGBA);
         buffer.flip();
         return new Object[]{buffer, decoder.getWidth(), decoder.getHeight()};
-    }
-    
-    public static Object[] getResource(final String filePath)
-    {
-        return resources.get(filePath);
-    }
-    
-    private static Object[] loadOBJ(final String filePath) throws IOException
-    {
-        Model model = OBJLoader.load(Paths.get(filePath));
-        Logging.fine("Loading \"" + filePath + "\" - " + model.verticesCount() + " vertices, " + model.faceCount() + " faces");
-        return new Object[]{model};
     }
 }

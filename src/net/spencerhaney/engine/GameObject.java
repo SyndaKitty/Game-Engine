@@ -9,6 +9,10 @@ public abstract class GameObject
 
     public abstract void update();
 
+    /**
+     * Initializes this object.
+     * Is implicitly called when object is added to the game.
+     */
     public abstract void init();
 
     public void render()

@@ -1,6 +1,7 @@
 package net.spencerhaney.opengl;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.file.Path;
@@ -97,9 +98,9 @@ public class GLUtil
         GL20.glDeleteProgram(textureProgram);
     }
 
-    public static int createTexture(final String fileName, final int textureUnit)
+    public static int createTexture(final String fileName, final int textureUnit) throws IOException
     {
-        Object[] textureResource = Resources.getResource(fileName);
+        Object[] textureResource = Resources.loadPNG(fileName);
         
         ByteBuffer textureBytes = null;
         int width = 0;

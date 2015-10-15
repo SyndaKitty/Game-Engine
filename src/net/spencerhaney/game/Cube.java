@@ -3,7 +3,6 @@ package net.spencerhaney.game;
 import java.nio.file.Paths;
 
 import net.spencerhaney.engine.GameObject;
-import net.spencerhaney.opengl.GLUtil;
 import net.spencerhaney.opengl.Model;
 import net.spencerhaney.opengl.OBJLoader;
 
