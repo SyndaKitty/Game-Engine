@@ -1,4 +1,28 @@
 
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright © 2015, Heiko Brumme
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package net.spencerhaney.opengl;
 
 import java.nio.FloatBuffer;
@@ -11,7 +35,6 @@ import org.lwjgl.BufferUtils;
  */
 public class Matrix4f
 {
-
     private float m00, m01, m02, m03;
     private float m10, m11, m12, m13;
     private float m20, m21, m22, m23;
@@ -44,7 +67,7 @@ public class Matrix4f
         m32 = other.m32;
         m33 = other.m33;
     }
-    
+
     /**
      * Creates a 4x4 matrix with specified columns.
      *
@@ -79,7 +102,7 @@ public class Matrix4f
         m23 = col4.getZ();
         m33 = col4.getW();
     }
-
+    
     /**
      * Sets this matrix to the identity matrix.
      */
@@ -103,7 +126,7 @@ public class Matrix4f
         m31 = 0f;
         m32 = 0f;
     }
-    
+
     /**
      * Adds this matrix to another matrix.
      *
@@ -207,7 +230,7 @@ public class Matrix4f
         float y0 = vector.getY();
         float z0 = vector.getZ();
         float w0 = vector.getW();
-        
+
         float x = this.m00 * x0 + this.m01 * y0 + this.m02 * z0 + this.m03 * w0;
         float y = this.m10 * x0 + this.m11 * y0 + this.m12 * z0 + this.m13 * w0;
         float z = this.m20 * x0 + this.m21 * y0 + this.m22 * z0 + this.m23 * w0;
@@ -421,6 +444,11 @@ public class Matrix4f
         return translation;
     }
 
+    public static Matrix4f translate(Vector3f translation)
+    {
+        return translate(translation.getX(), translation.getY(), translation.getZ());
+    }
+
     /**
      * Creates a rotation matrix. Similar to <code>glRotate(angle, x, y, z)</code>.
      *
@@ -482,5 +510,55 @@ public class Matrix4f
         scaling.m22 = z;
 
         return scaling;
+    }
+
+    public static Matrix4f zero()
+    {
+        Matrix4f zero = new Matrix4f();
+        zero.m00 = 0;
+        zero.m11 = 0;
+        zero.m22 = 0;
+        zero.m33 = 0;
+        
+        return zero;
+    }
+    
+    public static Matrix4f lookAt(Vector3f eye, Vector3f target, Vector3f up)
+    {
+//        Vector3f forward = target.subtract(camera).normalize();
+//        Vector3f side = forward.cross(up).normalize();
+//        up = side.cross(forward);
+//
+//        Matrix4f result = zero();
+//        result.m00 = side.getX();
+//        result.m01 = side.getY();
+//        result.m02 = side.getZ();
+//        result.m10 = up.getX();
+//        result.m11 = up.getY();
+//        result.m12 = up.getZ();
+//        result.m20 = -forward.getX();
+//        result.m21 = -forward.getY();
+//        result.m22 = -forward.getZ();
+//        result.m33 = 1;
+//        
+//        return result.multiply(Matrix4f.translate(camera.negate()));
+        Vector3f zAxis = eye.subtract(target).normalize();
+        Vector3f xAxis = up.cross(zAxis).normalize();
+        Vector3f yAxis = zAxis.cross(xAxis);
+        
+        return new Matrix4f(
+                new Vector4f(xAxis.getX(), yAxis.getX(), zAxis.getX(), 0),
+                new Vector4f(xAxis.getY(), yAxis.getY(), zAxis.getY(), 0),
+                new Vector4f(xAxis.getZ(), yAxis.getZ(), zAxis.getZ(), 0),
+                new Vector4f(-xAxis.dot(eye), -yAxis.dot(eye), -zAxis.dot(eye), 1)
+                );
+    }
+
+    @Override
+    public String toString()
+    {
+        return String.format("[\n%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f ]", m00, m01, m02, m03,
+                m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33);
+
     }
 }

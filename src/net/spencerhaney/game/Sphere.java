@@ -9,7 +9,7 @@ import net.spencerhaney.opengl.Model;
 import net.spencerhaney.opengl.OBJLoader;
 import net.spencerhaney.opengl.Vector3f;
 
-public class Cube extends GameObject
+public class Sphere extends GameObject
 {
     private Model model;
 
@@ -18,8 +18,7 @@ public class Cube extends GameObject
     private float zrot;
     private float srot;
 
-    
-    public Cube(Vector3f position)
+    public Sphere(Vector3f position)
     {
         this.position = position;
     }
@@ -27,7 +26,7 @@ public class Cube extends GameObject
     @Override
     public void init()
     {
-        model = OBJLoader.load(Paths.get("res\\models\\TexturedCube.obj"));
+        model = OBJLoader.load(Paths.get("res/models/sphere.obj"));
         xrot = (float)Math.random();
         yrot = (float)Math.random();
         zrot = (float)Math.random();

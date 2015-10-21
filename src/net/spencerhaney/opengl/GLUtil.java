@@ -7,8 +7,10 @@ import java.nio.FloatBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
@@ -23,14 +25,12 @@ public class GLUtil
 {
     public static int vertexShader;
     public static int fragmentShader;
-    public static int textureFragmentShader;
     public static int program;
-    public static int textureProgram;
     
     private static boolean legacy;
     
-    private static Matrix4f projectionMatrix;
     private static ArrayList<Integer> loadedTextures = new ArrayList<Integer>();
+    private static int matrixLocation;
     
     private GLUtil()
     {
@@ -40,16 +40,10 @@ public class GLUtil
     public static void init()
     {
         Logging.fine("OpenGL version: " + GL11.glGetString(GL11.GL_VERSION));
-
-        //Setup projection matrix
-        float fieldOfView = 60f;
-        float aspectRatio = (float)1920/(float)1080; //TODO remove hardcoding
-        float near_plane = 0.1f;
-        float far_plane = 100f;
-        projectionMatrix = Matrix4f.perspective(fieldOfView, aspectRatio, near_plane, far_plane).multiply(Matrix4f.translate(0, 0, -1.5f));
         
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDepthFunc(GL11.GL_LESS);
+        GL11.glEnable(GL11.GL_CULL_FACE);
         
         String vShader = loadFile(Paths.get("GLSL/vertexShader.glsl"));
         vertexShader = createShader(GL20.GL_VERTEX_SHADER, vShader);
@@ -57,20 +51,25 @@ public class GLUtil
         String fShader = loadFile(Paths.get("GLSL/fragmentShader.glsl"));
         fragmentShader = createShader(GL20.GL_FRAGMENT_SHADER, fShader);
         
-        String tShader = loadFile(Paths.get("GLSL/textureFragmentShader.glsl"));
-        textureFragmentShader = createShader(GL20.GL_FRAGMENT_SHADER, tShader);
-        
         program = createProgram(vertexShader, fragmentShader);
-        textureProgram = createProgram(vertexShader, textureFragmentShader);
         
-        int projectionMatrixLocation = GL20.glGetUniformLocation(program, "projectionMatrix");
-        
-        GL20.glUseProgram(program);
-        FloatBuffer buffer = projectionMatrix.getBuffer();
-        GL20.glUniformMatrix4fv(projectionMatrixLocation, false, buffer);
-        GL20.glUseProgram(0);
+        matrixLocation = GL20.glGetUniformLocation(program, "MVP");
     }
 
+    /**
+     * Uploads the MVP matrix to OpenGL
+     */
+    public static void uploadMVP(Matrix4f model)
+    {
+        GL20.glUseProgram(program);
+        Matrix4f mvp = Camera.getProjectionMatrix();
+        mvp = mvp.multiply(Camera.getViewMatrix());
+        mvp = mvp.multiply(model);
+        FloatBuffer buffer = mvp.getBuffer();
+        GL20.glUniformMatrix4fv(matrixLocation, false, buffer);
+        GL20.glUseProgram(0);
+    }
+    
     public static void cleanup()
     {
         //Delete the textures
@@ -87,14 +86,11 @@ public class GLUtil
         
         GL20.glUseProgram(program);
         GL20.glDetachShader(program, vertexShader);
-        GL20.glDetachShader(program, textureFragmentShader);
         
         GL20.glDeleteShader(vertexShader);
         GL20.glDeleteShader(fragmentShader);
-        GL20.glDeleteShader(textureFragmentShader);
         
         GL20.glDeleteProgram(program);
-        GL20.glDeleteProgram(textureProgram);
     }
 
     public static int createTexture(final String fileName, final int textureUnit) throws IOException
@@ -148,12 +144,10 @@ public class GLUtil
         int program = GL20.glCreateProgram();
         //Position information will be attribute 0
         GL20.glBindAttribLocation(program, 0, "in_Position");
-        // Color information will be attribute 1
-        GL20.glBindAttribLocation(program, 1, "in_Color");
-        // Texture coord information will be attribute 2
-        GL20.glBindAttribLocation(program, 2, "in_TextureCoord");
+        // Texture coord information will be attribute 1
+        GL20.glBindAttribLocation(program, 1, "in_TextureCoord");
         // Normal vector will be attribute 3
-        GL20.glBindAttribLocation(program, 3, "in_Normal");        
+        GL20.glBindAttribLocation(program, 2, "in_Normal");        
         for (int s : shaders)
         {
             GL20.glAttachShader(program, s);
@@ -237,6 +231,28 @@ public class GLUtil
             buffer.append(in.nextLine() + "\n");
         }
         return buffer.toString();
+    }
+    
+    public static FloatBuffer getBuffer3f(List<Vector3f> vectors)
+    {
+        FloatBuffer buffer = BufferUtils.createFloatBuffer(vectors.size() * 3 * Float.SIZE);
+        for(int i = 0; i < vectors.size(); i++)
+        {
+            buffer.put(vectors.get(i).getXYZ());
+        }
+        buffer.flip();
+        return buffer;
+    }
+    
+    public static FloatBuffer getBuffer2f(List<Vector2f> vectors)
+    {
+        FloatBuffer buffer = BufferUtils.createFloatBuffer(vectors.size() * 2 * Float.SIZE);
+        for(int i = 0; i < vectors.size(); i++)
+        {
+            buffer.put(vectors.get(i).getXY());
+        }
+        buffer.flip();
+        return buffer;
     }
     
     public static void setLegacy(boolean b)

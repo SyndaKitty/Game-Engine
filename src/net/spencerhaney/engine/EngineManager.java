@@ -7,10 +7,12 @@ import static org.lwjgl.glfw.GLFW.glfwTerminate;
 
 import java.io.File;
 
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL11;
 
 import net.spencerhaney.game.MyGame;
+import net.spencerhaney.opengl.Camera;
 import net.spencerhaney.opengl.GLUtil;
 
 public class EngineManager
@@ -52,7 +54,9 @@ public class EngineManager
         }
 
         screen = new ScreenManager();
-        screen.createWindow(game.getTitle(), 1920 / 2, 1080 / 2);
+        screen.createWindow(game.getTitle(), 1920, 1080);
+        GLFW.glfwSetCursorPos(screen.getWindow(), 1920 / 2, 1080 / 2); //TODO remove hardcoding
+        Camera.init((float)1920 / 1080);
         screen.show();
         game.init();
     }
@@ -66,6 +70,7 @@ public class EngineManager
             Time.update();
             game.gameUpdate();
             game.gameRender();
+            Camera.fpsCamera(screen.getWindow());
         }
     }
 

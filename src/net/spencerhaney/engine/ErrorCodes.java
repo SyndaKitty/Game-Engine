@@ -18,9 +18,9 @@ public class ErrorCodes
     public static final int POLYGON_SIDES_TOO_LARGE = 3;
     
     /**
-     * The Error code that occurs when updating a face with more or less vertices than it had
+     * The Error code that occurs when attempting to load a .obj file that doesn't exist
      */
-    public static final int FACE_VERTICES_SIZE_MISTMATCH = 4;
+    public static final int OBJ_FILE_NOT_FOUND = 4;
     
     /**
      * The Error code that occurs when constructing a face with a mismatching number of vertices and normal

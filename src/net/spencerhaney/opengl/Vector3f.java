@@ -33,6 +33,35 @@ public class Vector3f
         setXYZ(x, y, z);
     }
 
+    public Vector3f add(Vector3f other)
+    {
+        return new Vector3f(x + other.x, y + other.y, z + other.z);
+    }
+    
+    public Vector3f subtract(Vector3f other)
+    {
+        return new Vector3f(x - other.x, y - other.y, z - other.z);
+    }
+    
+    public Vector3f multiply(float scalar)
+    {
+        return new Vector3f(scalar * x, scalar * y, scalar * z);
+    }
+    
+    public Vector3f negate()
+    {
+        return this.multiply(-1);
+    }
+    
+    public Vector3f cross(Vector3f other)
+    {
+        float x = this.y * other.z - this.z * other.y;
+        float y = this.z * other.x - this.x * other.z;
+        float z = this.x * other.y - this.y * other.x;
+        
+        return new Vector3f(x, y, z);
+    }
+    
     public void setXYZ(float x, float y, float z)
     {
         this.x = x;
@@ -84,6 +113,11 @@ public class Vector3f
         return z;
     }
 
+    public float dot(Vector3f other)
+    {
+        return x * other.x + y * other.y + z * other.z;
+    }
+    
     public float length()
     {
         return (float)Math.sqrt(x * x + y * y + z * z);
