@@ -3,18 +3,39 @@ package net.spencerhaney.opengl;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+
+import org.lwjgl.opengl.GL13;
 
 import net.spencerhaney.engine.EngineManager;
 import net.spencerhaney.engine.ErrorCodes;
 import net.spencerhaney.engine.Logging;
 
-public class OBJLoader
+public class ModelLoader
 {
-    public static Model load(Path p)
+    private static Map<String, Object[]> models = new HashMap<>();
+    
+    public static Model load(Path model, Path texture)
     {
-        Logging.fine("Loading " + p);
+        String key = model.normalize().toString() + "|" + texture.normalize().toString();
+        if(models.containsKey(key))
+        {
+            Object[] objects = models.get(key);
+            Model m = new Model();
+            
+            List<Vector3f> vertices = (List)objects[0];
+            List<Vector2f> uvs = (List)objects[1];
+            List<Vector3f> normals = (List)objects[2];
+            int tex = (int)objects[3];
+            
+            m.init(vertices, uvs, normals, tex);
+            return m;
+        }
+        
+        Logging.fine("Loading " + model);
         List<Integer> vertexIndices = new ArrayList<>();
         List<Integer> uvIndices = new ArrayList<>();
         List<Integer> normalIndices = new ArrayList<>();
@@ -25,7 +46,7 @@ public class OBJLoader
         Scanner in = null;
         try
         {
-            in = new Scanner(p.toFile());
+            in = new Scanner(model.toFile());
         }
         catch (FileNotFoundException e)
         {
@@ -48,7 +69,7 @@ public class OBJLoader
             else if (header.equalsIgnoreCase("vt"))
             {
                 float x = Float.parseFloat(tokens[1]);
-                float y = Float.parseFloat(tokens[2]);
+                float y = 1 - Float.parseFloat(tokens[2]);
                 tempUVs.add(new Vector2f(x, y));
             }
             else if (header.equalsIgnoreCase("vn"))
@@ -99,8 +120,12 @@ public class OBJLoader
         }
         in.close();
 
+        int tex = GLUtil.createTexture(texture, GL13.GL_TEXTURE0);
+        
         Model m = new Model();
-        m.init(outVertices, outUVs, outNormals);
+        m.init(outVertices, outUVs, outNormals, tex);
+        Object[] objects = {outVertices, outUVs, outNormals, tex};
+        models.put(key, objects);
         return m;
     }
 }

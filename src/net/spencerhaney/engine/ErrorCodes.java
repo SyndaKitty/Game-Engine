@@ -28,7 +28,12 @@ public class ErrorCodes
     public static final int VERTEX_NORMAL_MISTMATCH = 5;
     
     /**
-     * The Error code the occurs when the GLFW window could not be created with OpenGL 3.2 nor OpenGL 2.1
+     * The Error code that occurs when the GLFW window could not be created with OpenGL 3.2 nor OpenGL 2.1
      */
     public static final int GLFW_CREATE_WINDOW_FAIL = 6;
+    
+    /**
+     * The Error code that occurs when the PNGDecoder cannot recognize the passed texture
+     */
+    public static final int INCORRECT_TEXTURE = 7;
 }

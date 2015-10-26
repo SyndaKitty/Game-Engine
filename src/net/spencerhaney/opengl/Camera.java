@@ -15,7 +15,7 @@ public class Camera
     private static final float INIT_FOV = 45f;
     private static final float INIT_NEAR = 0.1f;
     private static final float INIT_FAR = 500f;
-    private static final float FP_SENSITIVITY = TWO_PI / 200.0f;
+    private static final float FP_SENSITIVITY = TWO_PI / 150.0f;
     private static Matrix4f projectionMatrix;
     private static Matrix4f viewMatrix = new Matrix4f();
     private static Vector3f position = new Vector3f();
@@ -75,7 +75,7 @@ public class Camera
         float sv = (float)Math.sin(-vertical);
         float sh = (float)Math.sin(horizontal);
         Vector3f direction = new Vector3f(cv * sh, -sv, cv * ch);
-        float speed = 5;
+        float speed = 10;
         
         Vector3f left = new Vector3f((float)Math.sin(horizontal - Math.PI / 2), 0, (float)Math.cos(horizontal - Math.PI / 2));
         if(GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS)

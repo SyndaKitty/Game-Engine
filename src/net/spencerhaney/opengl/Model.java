@@ -14,12 +14,14 @@ public class Model
     private int vertexVbo;
     private int uvVbo;
     private int normalVbo;
+    private int texture;
     
-    public void init(List<Vector3f> vertices, List<Vector2f> uvs, List<Vector3f> normals)
+    public void init(List<Vector3f> vertices, List<Vector2f> uvs, List<Vector3f> normals, int texture)
     {
         this.vertices = vertices;
+        this.texture = texture;
         
-     // Generate and bind VAO
+        // Generate and bind VAO
         vao = GL30.glGenVertexArrays();
         GL30.glBindVertexArray(vao);
 
@@ -38,7 +40,6 @@ public class Model
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalVbo);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, GLUtil.getBuffer3f(normals), GL15.GL_STATIC_DRAW);
         GL20.glVertexAttribPointer(2, 3, GL11.GL_FLOAT, false, 0, 0);
-        
     }
 
     public void render(Vector3f position, Matrix4f rotation)
@@ -47,6 +48,7 @@ public class Model
         GLUtil.uploadMVP(translation.multiply(rotation));
         
         GL20.glUseProgram(GLUtil.program);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
         GL30.glBindVertexArray(vao);
         
         GL20.glEnableVertexAttribArray(0);

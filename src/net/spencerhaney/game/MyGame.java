@@ -31,15 +31,6 @@ public class MyGame extends Game
     @Override
     public void init()
     {
-        for (int i = 0; i < 20; i++)
-        {
-            for (int j = 0; j < 20; j++)
-            {
-                for (int k = 0; k < 20; k++)
-                {
-                    addObject(new Sphere(new Vector3f(i * 4, j * 4, k * 4)));
-                }
-            }
-        }
+        addObject(new Cube(new Vector3f(0, 0, 0)));
     }
 }

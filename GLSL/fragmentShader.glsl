@@ -8,5 +8,6 @@ in vec3 pass_Normal;
 out vec4 out_Color;
 
 void main(void) {
-	out_Color = vec4(pass_Normal.x, pass_Normal.y, pass_Normal.z, 1.0);
+	out_Color = vec4(abs(int(pass_Normal.x)), abs(int(pass_Normal.y)), abs(int(pass_Normal.z)), 1.0);
+	out_Color = texture(texture_diffuse, pass_TextureCoord);
 }

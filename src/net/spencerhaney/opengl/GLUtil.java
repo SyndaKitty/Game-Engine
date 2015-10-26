@@ -1,13 +1,17 @@
 package net.spencerhaney.opengl;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import org.lwjgl.BufferUtils;
@@ -17,9 +21,11 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL32;
 
+import de.matthiasmann.twl.utils.PNGDecoder;
+import de.matthiasmann.twl.utils.PNGDecoder.Format;
+import net.spencerhaney.engine.EngineManager;
 import net.spencerhaney.engine.ErrorCodes;
 import net.spencerhaney.engine.Logging;
-import net.spencerhaney.engine.Resources;
 
 public class GLUtil
 {
@@ -31,6 +37,8 @@ public class GLUtil
     
     private static ArrayList<Integer> loadedTextures = new ArrayList<Integer>();
     private static int matrixLocation;
+    
+    private static Map<String, Integer> textures = new HashMap<>();
     
     private GLUtil()
     {
@@ -93,9 +101,13 @@ public class GLUtil
         GL20.glDeleteProgram(program);
     }
 
-    public static int createTexture(final String fileName, final int textureUnit) throws IOException
+    public static int createTexture(final Path p, final int textureUnit)
     {
-        Object[] textureResource = Resources.loadPNG(fileName);
+        if(textures.containsKey(p.normalize().toString()))
+        {
+            return textures.get(p.normalize().toString());
+        }
+        Object[] textureResource = loadPNG(p);
         
         ByteBuffer textureBytes = null;
         int width = 0;
@@ -109,7 +121,7 @@ public class GLUtil
         }
         catch (NullPointerException | ClassCastException | ArrayIndexOutOfBoundsException e)
         {
-            Logging.severe("Missing texture: " + fileName, e);
+            Logging.severe("Missing texture: " + p.toString(), e);
             System.exit(ErrorCodes.MISSING_TEXTURE);
         }
 
@@ -135,104 +147,11 @@ public class GLUtil
                 GL11.GL_NEAREST);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, 
                 GL11.GL_LINEAR_MIPMAP_LINEAR);
-
+        textures.put(p.normalize().toString(), texture);
+        
         return texture;
     }
 
-    public static int createProgram(final int... shaders)
-    {
-        int program = GL20.glCreateProgram();
-        //Position information will be attribute 0
-        GL20.glBindAttribLocation(program, 0, "in_Position");
-        // Texture coord information will be attribute 1
-        GL20.glBindAttribLocation(program, 1, "in_TextureCoord");
-        // Normal vector will be attribute 3
-        GL20.glBindAttribLocation(program, 2, "in_Normal");        
-        for (int s : shaders)
-        {
-            GL20.glAttachShader(program, s);
-        }
-        
-        GL20.glLinkProgram(program);
-        int status = GL20.glGetProgrami(program, GL20.GL_LINK_STATUS);
-        if (status == GL11.GL_FALSE)
-        {
-            String error = GL20.glGetProgramInfoLog(program);
-            Logging.severe(String.format("Linker failure: %s\n", error));
-        }
-        return program;
-    }
-
-    public static int createProgram(final int[] shaderTypes, final String[] shaders)
-    {
-        int[] shaderIds = new int[shaders.length];
-        for (int i = 0; i < shaderIds.length; i++)
-        {
-            shaderIds[i] = createShader(shaderTypes[i], shaders[i]);
-        }
-        return createProgram(shaderIds);
-    }
-
-    public static int createShader(final int shadertype, final String shaderString)
-    {
-        int shader = GL20.glCreateShader(shadertype);
-        GL20.glShaderSource(shader, shaderString);
-        GL20.glCompileShader(shader);
-        int status = GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS);
-        if (status == GL11.GL_FALSE)
-        {
-            String error = GL20.glGetShaderInfoLog(shader);
-
-            String shaderTypeString = null;
-            switch (shadertype)
-            {
-                case GL20.GL_VERTEX_SHADER:
-                    shaderTypeString = "vertex";
-                    break;
-                case GL32.GL_GEOMETRY_SHADER:
-                    shaderTypeString = "geometry";
-                    break;
-                case GL20.GL_FRAGMENT_SHADER:
-                    shaderTypeString = "fragment";
-                    break;
-            }
-            Logging.severe(String.format("Compile failure in %s shader:\n%s\n", shaderTypeString, error));
-            System.exit(ErrorCodes.SHADER_COMPILATION);
-        }
-        return shader;
-    }
-
-    public static void setWireframeMode(final boolean on)
-    {
-        if (on)
-        {
-            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
-        }
-        else
-        {
-            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
-        }
-    }
-
-    public static String loadFile(final Path p)
-    {
-        Scanner in = null;
-        try
-        {
-            in = new Scanner(p.toFile());
-        }
-        catch (FileNotFoundException e)
-        {
-            e.printStackTrace();
-        }
-        StringBuffer buffer = new StringBuffer();
-        while (in.hasNextLine())
-        {
-            buffer.append(in.nextLine() + "\n");
-        }
-        return buffer.toString();
-    }
-    
     public static FloatBuffer getBuffer3f(List<Vector3f> vectors)
     {
         FloatBuffer buffer = BufferUtils.createFloatBuffer(vectors.size() * 3 * Float.SIZE);
@@ -263,5 +182,129 @@ public class GLUtil
     public static boolean isLegacy()
     {
         return legacy;
+    }
+    
+    public static void setWireframeMode(final boolean on)
+    {
+        if (on)
+        {
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
+        }
+        else
+        {
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
+        }
+    }
+
+    private static Object[] loadPNG(Path p)
+    {
+        String filePath = p.toString();
+        
+        InputStream in = null;
+        try
+        {
+            in = new FileInputStream(filePath);
+        }
+        catch (FileNotFoundException e)
+        {
+            Logging.severe(e);
+            EngineManager.errorStop(ErrorCodes.MISSING_TEXTURE);
+        }
+        PNGDecoder decoder = null;
+        try
+        {
+            decoder = new PNGDecoder(in);
+        }
+        catch (IOException e1)
+        {
+            Logging.severe(e1);
+            EngineManager.errorStop(ErrorCodes.INCORRECT_TEXTURE);
+        }
+
+        Logging.fine("Loading \"" + filePath + "\" - " + decoder.getWidth() + "x" + decoder.getHeight() + "px");
+
+        final ByteBuffer buffer = ByteBuffer.allocateDirect(4 * decoder.getWidth() * decoder.getHeight());
+        try
+        {
+            decoder.decode(buffer, decoder.getWidth() * 4, Format.RGBA);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        buffer.flip();
+        return new Object[]{buffer, decoder.getWidth(), decoder.getHeight()};
+    }
+    
+    private static int createProgram(final int... shaders)
+    {
+        int program = GL20.glCreateProgram();
+        //Position information will be attribute 0
+        GL20.glBindAttribLocation(program, 0, "in_Position");
+        // Texture coord information will be attribute 1
+        GL20.glBindAttribLocation(program, 1, "in_TextureCoord");
+        // Normal vector will be attribute 2
+        GL20.glBindAttribLocation(program, 2, "in_Normal");        
+        for (int s : shaders)
+        {
+            GL20.glAttachShader(program, s);
+        }
+        
+        GL20.glLinkProgram(program);
+        int status = GL20.glGetProgrami(program, GL20.GL_LINK_STATUS);
+        if (status == GL11.GL_FALSE)
+        {
+            String error = GL20.glGetProgramInfoLog(program);
+            Logging.severe(String.format("Linker failure: %s\n", error));
+        }
+        return program;
+    }
+    
+    private static int createShader(final int shadertype, final String shaderString)
+    {
+        int shader = GL20.glCreateShader(shadertype);
+        GL20.glShaderSource(shader, shaderString);
+        GL20.glCompileShader(shader);
+        int status = GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS);
+        if (status == GL11.GL_FALSE)
+        {
+            String error = GL20.glGetShaderInfoLog(shader);
+
+            String shaderTypeString = null;
+            switch (shadertype)
+            {
+                case GL20.GL_VERTEX_SHADER:
+                    shaderTypeString = "vertex";
+                    break;
+                case GL32.GL_GEOMETRY_SHADER:
+                    shaderTypeString = "geometry";
+                    break;
+                case GL20.GL_FRAGMENT_SHADER:
+                    shaderTypeString = "fragment";
+                    break;
+            }
+            Logging.severe(String.format("Compile failure in %s shader:\n%s\n", shaderTypeString, error));
+            System.exit(ErrorCodes.SHADER_COMPILATION);
+        }
+        return shader;
+    }
+
+    private static String loadFile(final Path p)
+    {
+        Scanner in = null;
+        try
+        {
+            in = new Scanner(p.toFile());
+        }
+        catch (FileNotFoundException e)
+        {
+            e.printStackTrace();
+        }
+        StringBuffer buffer = new StringBuffer();
+        while (in.hasNextLine())
+        {
+            buffer.append(in.nextLine() + "\n");
+        }
+        return buffer.toString();
     }
 }
